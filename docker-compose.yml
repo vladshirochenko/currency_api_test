@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  nginx:
+    image: nginx:latest
+    depends_on:
+      - php
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+
+  php:
+    image: yiisoftware/yii2-php:7.4-fpm
+    depends_on:
+      - db
+    volumes:
+      - ./:/var/www/html
+    working_dir: /var/www/html
+
+  db:
+    image: mariadb:latest
+    volumes:
+      - yii-test-currency-mariadb-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: yii_test_currency
+    ports:
+      - 3306:3306
+
+volumes:
+  yii-test-currency-mariadb-data:
