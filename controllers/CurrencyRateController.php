@@ -48,18 +48,22 @@ class CurrencyRateController extends Controller
         $date = Yii::$app->formatter->asDate($date, 'php:Y-m-d H:i:s');
 
         $lastRates = CurrencyRate::find()
-            ->select(['currency', 'MAX(begins_at) as max_begins_at', 'office_id'])
+            ->select(['currency', 'MAX(begins_at) AS max_begins_at'])
             ->andWhere(['>=', 'begins_at', $date])
             ->andWhere(['OR',
                 ['office_id' => null],
                 ['office_id' => $officeId]
             ])
-            ->groupBy('currency');
+            ->groupBy(['currency']);
 
         $rates = (new Query())
             ->select(['currency_rate.currency as currency', 'buy', 'sell'])
             ->from(['last_rates' => $lastRates])
-            ->innerJoin('currency_rate', 'currency_rate.currency = last_rates.currency AND currency_rate.begins_at = last_rates.max_begins_at AND currency_rate.office_id = last_rates.office_id')
+            ->innerJoin('currency_rate', 'currency_rate.currency = last_rates.currency AND currency_rate.begins_at = last_rates.max_begins_at')
+            ->andWhere(['OR',
+                ['currency_rate.office_id' => null],
+                ['currency_rate.office_id' => $officeId]
+            ])
             ->all();
 
         return $this->success($rates);

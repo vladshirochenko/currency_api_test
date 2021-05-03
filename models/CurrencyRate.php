@@ -69,9 +69,19 @@ class CurrencyRate extends \yii\db\ActiveRecord
             $this->begins_at = \Yii::$app->formatter->asDate($this->begins_at, 'php:Y-m-d H:i:s');
         }
 
-        $existedRate = self::findOne(['currency' => $this->currency, 'begins_at' => $this->begins_at, 'office_id' => $this->office_id]);
+        $existedRateQuery = self::find()->andWhere(['currency' => $this->currency, 'begins_at' => $this->begins_at]);
+
+        if ($this->office_id) {
+            $existedRateQuery->andWhere(['OR',
+                ['office_id' => null],
+                ['office_id' => $this->office_id]
+            ]);
+        }
+
+        $existedRate = $existedRateQuery->one();
+
         if ($existedRate) {
-            $this->addError('currency', 'currency rate for this date already exists');
+            $this->addError('currency', 'currency rate for this date, currency and office already exists');
             return false;
         }
 
